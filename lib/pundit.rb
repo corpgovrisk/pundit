@@ -17,13 +17,13 @@ module Pundit
   extend ActiveSupport::Concern
 
   class << self
-    def policy_scope(user, scope)
+    def policy_scope(user, operation, scope)
       policy_scope = PolicyFinder.new(scope).scope
-      policy_scope.new(user, scope).resolve if policy_scope
+      policy_scope.new(user, operation, scope).resolve if policy_scope
     end
 
-    def policy_scope!(user, scope)
-      PolicyFinder.new(scope).scope!.new(user, scope).resolve
+    def policy_scope!(user, operation, scope)
+      PolicyFinder.new(scope).scope!.new(user, operation, scope).resolve
     end
 
     def policy(user, record)
@@ -32,7 +32,7 @@ module Pundit
     end
 
     def policy!(user, record)
-      PolicyFinder.new(record).policy!.new(user, record)
+      PolicyFinder.new(record).policy!.new(user, operation, record)
     end
   end
 
@@ -77,17 +77,17 @@ module Pundit
     true
   end
 
-  def policy_scope(scope)
+  def policy_scope_key(operation, scope)
+    "#{operation}#{scope.model_name}"
+  end
+
+  def policy_scope(operation, scope)
     @_pundit_policy_scoped = true
-    policy_scopes[scope] ||= Pundit.policy_scope!(pundit_user, scope)
+    policy_scopes[policy_scope_key(operation, scope)] ||= Pundit.policy_scope!(pundit_user, operation, scope)
   end
 
   def policy(record)
-    policies[record] ||= Pundit.policy!(pundit_user, record)
-  end
-
-  def policies
-    @_pundit_policies ||= {}
+    Pundit.policy!(pundit_user, record)
   end
 
   def policy_scopes
