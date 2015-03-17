@@ -32,7 +32,7 @@ module Pundit
     end
 
     def policy!(user, record)
-      PolicyFinder.new(record).policy!.new(user, operation, record)
+      PolicyFinder.new(record).policy!.new(user, record)
     end
   end
 
